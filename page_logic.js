@@ -1,10 +1,9 @@
-// This file contains all the data and logic for the new two-column layout.
+// This file contains all the data and logic for the new app-like layout.
 // Make sure this file is in the same directory as the HTML file.
 
 document.addEventListener('DOMContentLoaded', function() {
     
-    // --- DATA STORE ---
-    // This array holds all the administrative procedure data.
+    // --- DATA STORE (FULL DATASET) ---
     const procedures = [
         {
             id: '1.1.012756',
@@ -1218,20 +1217,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusFilter = document.getElementById('status-filter');
     const procedureListContainer = document.getElementById('procedure-list');
     
-    const detailsPlaceholder = document.getElementById('details-placeholder');
-    const detailsContent = document.getElementById('details-content');
+    const detailsPanel = document.getElementById('details-panel');
     const detailsTitle = document.getElementById('details-title');
+    const backToListBtn = document.getElementById('back-to-list-btn');
     
     const detailsTabs = document.querySelectorAll('.details-tab');
     const detailsTabPanes = document.querySelectorAll('.details-tab-pane');
 
     // --- HELPER FUNCTIONS ---
-
-    /**
-     * Returns the appropriate Tailwind CSS class for a given status.
-     * @param {string} status - The status of the procedure.
-     * @returns {string} The CSS class name.
-     */
     function getStatusClass(status) {
         const statusMap = {
             'Sửa đổi': 'status-suadoi', 'Thay thế': 'status-thaythe',
@@ -1242,10 +1235,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- CORE LOGIC ---
 
-    /**
-     * Renders the list of procedures in the left column.
-     * @param {Array} proceduresToRender - An array of procedure objects to display.
-     */
+    function applyFilters() {
+        const level = levelFilter.value;
+        const status = statusFilter.value;
+        const searchTerm = searchInput.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+        const filtered = procedures.filter(p => {
+            const nameNormalized = p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const idNormalized = p.id.toLowerCase();
+            const levelMatch = level === 'all' || p.level === level;
+            const statusMatch = status === 'all' || p.status === status;
+            const searchMatch = searchTerm === '' || nameNormalized.includes(searchTerm) || idNormalized.includes(searchTerm);
+            return levelMatch && statusMatch && searchMatch;
+        });
+        renderProcedureList(filtered);
+    }
+
     function renderProcedureList(proceduresToRender) {
         procedureListContainer.innerHTML = '';
         if (proceduresToRender.length === 0) {
@@ -1262,11 +1267,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="text-xs font-semibold text-slate-500">${p.id}</p>
                     <span class="card-badge ${getStatusClass(p.status)}">${p.status}</span>
                 </div>
-                <h4 class="font-semibold text-slate-800 text-sm">${p.name}</h4>
+                <h4 class="font-semibold text-slate-800 text-sm line-clamp-2">${p.name}</h4>
             `;
             listItem.addEventListener('click', () => {
                 displayProcedureDetails(p.id);
-                // Highlight the active item
                 document.querySelectorAll('#procedure-list button').forEach(btn => btn.classList.remove('active-procedure'));
                 listItem.classList.add('active-procedure');
             });
@@ -1274,23 +1278,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    /**
-     * Displays the details of a selected procedure in the right panel.
-     * @param {string} id - The ID of the procedure to display.
-     */
     function displayProcedureDetails(id) {
         const procedure = procedures.find(p => p.id === id);
         if (!procedure) return;
 
-        // Show the details panel and hide the placeholder
-        detailsPlaceholder.classList.add('hidden');
-        detailsContent.classList.remove('hidden');
-        detailsContent.classList.add('flex');
-
-        // Populate title
+        detailsPanel.classList.add('is-visible');
         detailsTitle.textContent = procedure.name;
 
-        // Populate Details Tab
         document.getElementById('tab-content-details').innerHTML = `
             <div class="space-y-6 text-sm">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
@@ -1305,13 +1299,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div><p class="font-semibold text-slate-600 mb-1">Căn cứ pháp lý</p><p class="text-xs leading-relaxed text-slate-500">${procedure.legalBasis || 'Không có'}</p></div>
             </div>`;
 
-        // Populate Documents Tab
         document.getElementById('tab-content-documents').innerHTML = `
             <ul class="list-disc list-inside space-y-3 text-sm leading-relaxed text-slate-700">
                 ${procedure.requiredDocs.map(doc => `<li>${doc}</li>`).join('')}
             </ul>`;
 
-        // Populate Fees Tab
         const feesContent = `
             <div class="space-y-5 text-sm">
                 <p class="leading-relaxed">${procedure.fees.description || 'Không có thông tin.'}</p>
@@ -1335,28 +1327,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         </tbody>
                     </table>
                 </div>` : ''}
-                <div>
-                    <p class="font-semibold text-slate-600">Lệ phí</p>
-                    <p>${procedure.fees.le_phi || 'Không quy định.'}</p>
-                </div>
-                ${procedure.fees.exemption ? `
-                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-md">
-                    <p class="font-semibold text-blue-800">Thông tin miễn giảm</p>
-                    <p class="text-blue-700 leading-relaxed">${procedure.fees.exemption}</p>
-                </div>` : ''}
+                <div><p class="font-semibold text-slate-600">Lệ phí</p><p>${procedure.fees.le_phi || 'Không quy định.'}</p></div>
+                ${procedure.fees.exemption ? `<div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-md"><p class="font-semibold text-blue-800">Thông tin miễn giảm</p><p class="text-blue-700 leading-relaxed">${procedure.fees.exemption}</p></div>` : ''}
             </div>`;
         document.getElementById('tab-content-fees').innerHTML = feesContent;
 
-        // Set default tab
         switchTab('details');
     }
 
-    /**
-     * Switches the active tab in the details panel.
-     * @param {string} tabId - The ID of the tab to activate.
-     */
     function switchTab(tabId) {
-        // Style the tabs
         detailsTabs.forEach(tab => {
             const isSelected = tab.dataset.tab === tabId;
             tab.classList.toggle('border-blue-500', isSelected);
@@ -1366,45 +1345,28 @@ document.addEventListener('DOMContentLoaded', function() {
             tab.classList.toggle('hover:text-slate-700', !isSelected);
             tab.classList.toggle('hover:border-slate-300', !isSelected);
         });
-        // Show the correct content pane
         detailsTabPanes.forEach(pane => {
             pane.classList.toggle('hidden', pane.id !== `tab-content-${tabId}`);
         });
     }
-
-    /**
-     * Filters procedures based on all selected criteria.
-     */
-    function filterProcedures() {
-        const level = levelFilter.value;
-        const status = statusFilter.value;
-        const searchTerm = searchInput.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-        const filtered = procedures.filter(p => {
-            const nameNormalized = p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            const idNormalized = p.id.toLowerCase();
-            
-            const levelMatch = level === 'all' || p.level === level;
-            const statusMatch = status === 'all' || p.status === status;
-            const searchMatch = searchTerm === '' || nameNormalized.includes(searchTerm) || idNormalized.includes(searchTerm);
-            
-            return levelMatch && statusMatch && searchMatch;
-        });
-        renderProcedureList(filtered);
+    
+    function hideDetailsPanel() {
+        detailsPanel.classList.remove('is-visible');
+        document.querySelectorAll('#procedure-list button').forEach(btn => btn.classList.remove('active-procedure'));
     }
 
     // --- INITIALIZATION & EVENT LISTENERS ---
 
-    // Setup event listeners for filters
     [searchInput, levelFilter, statusFilter].forEach(el => {
-        el.addEventListener('input', filterProcedures);
-        el.addEventListener('change', filterProcedures);
+        el.addEventListener('input', applyFilters);
+        el.addEventListener('change', applyFilters);
     });
 
-    // Setup event listeners for details panel tabs
     detailsTabs.forEach(tab => {
         tab.addEventListener('click', () => switchTab(tab.dataset.tab));
     });
+
+    backToListBtn.addEventListener('click', hideDetailsPanel);
 
     // Initialize statistic counters
     document.getElementById('count-suadoi').textContent = procedures.filter(p => p.status === 'Sửa đổi').length;
@@ -1414,5 +1376,5 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('count-moi').textContent = procedures.filter(p => p.status === 'Mới').length;
     
     // Initial render of all procedures
-    filterProcedures();
+    applyFilters();
 });
