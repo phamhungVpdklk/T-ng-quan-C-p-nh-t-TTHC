@@ -253,17 +253,17 @@ document.addEventListener('DOMContentLoaded', function() {
       "description": "Đơn giá đăng ký và cấp Giấy chứng nhận. Ghi chú: Trường hợp một thửa đất có nhiều hộ gia đình, cá nhân đồng sử dụng thì phải cấp mỗi người đồng sử dụng một giấy chứng nhận, mỗi giấy chứng nhận cấp thêm cho người đồng sử dụng thu 50.000 đồng/người đồng sử dụng. Trường hợp tổ chức đề nghị cấp giấy chứng nhận đối với các dự án có nhiều thửa đất, giấy chứng nhận cấp từ thửa thứ hai thu 50.000 đồng/GCN/thửa đất.",
       "details": [
         {
-          "type": "Hồ sơ hộ gia đình, cá nhân (UBND huyện cấp)",
+          "type": "Hồ sơ hộ gia đình, cá nhân",
           "service": "Cấp GCN quyền sử dụng đất",
           "cost": "880.000 đồng/GCN"
         },
         {
-          "type": "Hồ sơ hộ gia đình, cá nhân (UBND huyện cấp)",
+          "type": "Hồ sơ hộ gia đình, cá nhân",
           "service": "Cấp GCN về tài sản",
           "cost": "980.000 đồng/hồ sơ/thửa/GCN"
         },
         {
-          "type": "Hồ sơ hộ gia đình, cá nhân (UBND huyện cấp)",
+          "type": "Hồ sơ hộ gia đình, cá nhân",
           "service": "Cấp GCN đối với cả đất và tài sản",
           "cost": "1.250.000 đồng/GCN"
         },
